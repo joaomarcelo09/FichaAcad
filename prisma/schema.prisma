@@ -7,20 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+model dinheiro {
+  id                                                     Int               @id @default(autoincrement())
+  id_despesa                                             Int?
+  id_receita                                             Int?
+  dinheiro_despesa_dinheiro_id_despesaTodinheiro_despesa dinheiro_despesa? @relation("dinheiro_id_despesaTodinheiro_despesa", fields: [id_despesa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_dinheiro_dinheiro_despesa")
+  dinheiro_despesa_dinheiro_id_receitaTodinheiro_despesa dinheiro_receita? @relation("dinheiro_id_receitaTodinheiro_despesa", fields: [id_receita], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_dinheiro_dinheiro_despesa_2")
+
+  @@index([id_despesa], map: "FK_dinheiro_dinheiro_despesa")
+  @@index([id_receita], map: "FK_dinheiro_dinheiro_receita")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean? @default(false)
-  authorId  Int?
-  author    User?    @relation(fields: [authorId], references: [id])
+model dinheiro_despesa {
+  id                                             Int        @id
+  valor                                          Int
+  dinheiro_dinheiro_id_despesaTodinheiro_despesa dinheiro[] @relation("dinheiro_id_despesaTodinheiro_despesa")
+}
 
-  @@index([authorId], map: "Post_authorId_fkey")
+model dinheiro_receita {
+  id                                             Int        @id
+  valor                                          Int
+  dinheiro_dinheiro_id_receitaTodinheiro_despesa dinheiro[] @relation("dinheiro_id_receitaTodinheiro_despesa")
 }

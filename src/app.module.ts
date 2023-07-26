@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { DinheiroModule } from './dinheiro/dinheiro.module';
 
 @Module({
-  imports: [],
+  imports: [DinheiroModule],
   controllers: [],
   providers: [],
 })
