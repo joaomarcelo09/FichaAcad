@@ -7,25 +7,89 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model dinheiro {
-  id                                                     Int               @id @default(autoincrement())
-  id_despesa                                             Int?
-  id_receita                                             Int?
-  dinheiro_despesa_dinheiro_id_despesaTodinheiro_despesa dinheiro_despesa? @relation("dinheiro_id_despesaTodinheiro_despesa", fields: [id_despesa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_dinheiro_dinheiro_despesa")
-  dinheiro_despesa_dinheiro_id_receitaTodinheiro_despesa dinheiro_receita? @relation("dinheiro_id_receitaTodinheiro_despesa", fields: [id_receita], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_dinheiro_dinheiro_despesa_2")
+model atleta {
+  id           Int            @id @default(autoincrement())
+  id_pessoa    Int?
+  peso         Int
+  altura       Int
+  biotipo      String         @db.VarChar(50)
+  status       Boolean            @default(false)
+  pessoa       pessoa?        @relation(fields: [id_pessoa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_atleta_pessoa")
+  ficha_atleta ficha_atleta[]
 
-  @@index([id_despesa], map: "FK_dinheiro_dinheiro_despesa")
-  @@index([id_receita], map: "FK_dinheiro_dinheiro_receita")
+  @@index([id_pessoa], map: "FK_atleta_pessoa")
 }
 
-model dinheiro_despesa {
-  id                                             Int        @id
-  valor                                          Int
-  dinheiro_dinheiro_id_despesaTodinheiro_despesa dinheiro[] @relation("dinheiro_id_despesaTodinheiro_despesa")
+model email {
+  id     Int      @id @default(autoincrement())
+  email  String   @db.VarChar(50)
+  pessoa pessoa[]
 }
 
-model dinheiro_receita {
-  id                                             Int        @id
-  valor                                          Int
-  dinheiro_dinheiro_id_receitaTodinheiro_despesa dinheiro[] @relation("dinheiro_id_receitaTodinheiro_despesa")
+model exercicio {
+  id              Int               @id @default(autoincrement())
+  titulo          String            @db.VarChar(50)
+  descricao       String            @db.VarChar(50)
+    status       Boolean            @default(false)
+  ficha_exercicio ficha_exercicio[]
+}
+
+model ficha {
+  id              Int              @id @default(autoincrement())
+  id_exercicio    Int?
+  ficha_exercicio ficha_exercicio? @relation(fields: [id_exercicio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_ficha_exercicio")
+  ficha_atleta    ficha_atleta[]
+
+  @@index([id_exercicio], map: "FK_ficha_ficha_exercicio")
+}
+
+model ficha_atleta {
+  id        Int     @id @default(autoincrement())
+  id_atleta Int?
+  id_ficha  Int?
+  atleta    atleta? @relation(fields: [id_atleta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_atleta_atleta")
+  ficha     ficha?  @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_atleta_ficha")
+
+  @@index([id_atleta], map: "FK_ficha_atleta_atleta")
+  @@index([id_ficha], map: "FK_ficha_atleta_ficha")
+}
+
+model ficha_exercicio {
+  id             Int          @id @default(autoincrement())
+  id_exercicio   Int?
+  id_intensidade Int?
+  ficha          ficha[]
+  exercicio      exercicio?   @relation(fields: [id_exercicio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_exercicio_exercicio")
+  intensidade    intensidade? @relation(fields: [id_intensidade], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_exercicio_intensidade")
+
+  @@index([id_exercicio], map: "FK_ficha_exercicio_exercicio")
+  @@index([id_intensidade], map: "FK_ficha_exercicio_intensidade")
+}
+
+model intensidade {
+  id              Int               @id @default(autoincrement())
+  repeticao       Int
+  serie           Int
+   status       Boolean            @default(false)
+  ficha_exercicio ficha_exercicio[]
+}
+
+model pessoa {
+  id          Int       @id @default(autoincrement())
+  nome        String    @db.VarChar(50)
+  id_telefone Int?
+  id_email    Int?
+  atleta      atleta[]
+  email       email?    @relation(fields: [id_email], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_pessoa_email")
+  telefone    telefone? @relation(fields: [id_telefone], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_pessoa_telefone")
+
+  @@index([id_email], map: "FK_pessoa_email")
+  @@index([id_telefone], map: "FK_pessoa_telefone")
+}
+
+model telefone {
+  id     Int      @id @default(autoincrement())
+  tipo   String   @db.VarChar(50)
+  numero String   @db.VarChar(50)
+  pessoa pessoa[]
 }
