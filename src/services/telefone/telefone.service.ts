@@ -5,8 +5,9 @@ import { PrismaService } from 'src/database/prisma.service';
 export class TelefoneService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data) {
-    const telefone = await this.prisma.telefone.create({
+  async create(data, tx: any) {
+    const prisma = tx ?? this.prisma
+    const telefone = await prisma.telefone.create({
       data: {
         numero: data.numero,
         tipo: data.tipo,

@@ -26,10 +26,7 @@ export class AtletaController {
   @Post()
   async create(@Body() body: CreateAtletaDto) {
 
-    const email = await this.email.create(body.email)
-    const telefone = await this.telefone.create(body)
-
-    const pessoa = await this.pessoa.create(body)
+   
 
     const atleta = await this.atletaService.create(body)
 
