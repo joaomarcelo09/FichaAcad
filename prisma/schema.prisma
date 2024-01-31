@@ -13,7 +13,7 @@ model atleta {
   peso         Int
   altura       Int
   biotipo      String         @db.VarChar(50)
-  status       Boolean            @default(false)
+  status       Boolean        @default(false)
   pessoa       pessoa?        @relation(fields: [id_pessoa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_atleta_pessoa")
   ficha_atleta ficha_atleta[]
 
@@ -30,17 +30,16 @@ model exercicio {
   id              Int               @id @default(autoincrement())
   titulo          String            @db.VarChar(50)
   descricao       String            @db.VarChar(50)
-    status       Boolean            @default(false)
+  status          Boolean           @default(false)
+  id_seeder       Int?              @unique(map: "id_seeder")
   ficha_exercicio ficha_exercicio[]
 }
 
 model ficha {
-  id              Int              @id @default(autoincrement())
-  id_exercicio    Int?
-  ficha_exercicio ficha_exercicio? @relation(fields: [id_exercicio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_ficha_exercicio")
+  id              Int               @id @default(autoincrement())
+  nome            String            @db.VarChar(50)
   ficha_atleta    ficha_atleta[]
-
-  @@index([id_exercicio], map: "FK_ficha_ficha_exercicio")
+  ficha_exercicio ficha_exercicio[]
 }
 
 model ficha_atleta {
@@ -58,19 +57,22 @@ model ficha_exercicio {
   id             Int          @id @default(autoincrement())
   id_exercicio   Int?
   id_intensidade Int?
-  ficha          ficha[]
+  id_ficha       Int?
   exercicio      exercicio?   @relation(fields: [id_exercicio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_exercicio_exercicio")
+  ficha          ficha?       @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_exercicio_ficha")
   intensidade    intensidade? @relation(fields: [id_intensidade], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_exercicio_intensidade")
 
   @@index([id_exercicio], map: "FK_ficha_exercicio_exercicio")
   @@index([id_intensidade], map: "FK_ficha_exercicio_intensidade")
+  @@index([id_ficha], map: "id_ficha")
 }
 
 model intensidade {
   id              Int               @id @default(autoincrement())
   repeticao       Int
   serie           Int
-   status       Boolean            @default(false)
+  status          Boolean           @default(false)
+  id_seeder       Int?              @unique(map: "id_seeder")
   ficha_exercicio ficha_exercicio[]
 }
 
