@@ -37,9 +37,9 @@ export class AtletaController {
 
     const findAtleta = await this.atletaService.findOne(+atleta.id)
 
-    const fichaCriada = await this.ficha.create(ficha, findAtleta)
+    const {nome, exercicios, intensidade} = await this.ficha.create(ficha, findAtleta)
 
-    return {atleta, ficha: {nome: fichaCriada.createFicha.nome, exercicios: fichaCriada.exercicios, intensidade: fichaCriada.intensidade}};
+    return {atleta, ficha: {nome, exercicios, intensidade}};
   }
 
   @Get()

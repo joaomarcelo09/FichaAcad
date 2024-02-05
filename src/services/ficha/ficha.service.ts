@@ -5,11 +5,11 @@ import { PrismaService } from 'src/database/prisma.service';
 export class FichaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data, nomeAtleta) {
+  async create(data, atleta) {
 
     const createFicha = await this.prisma.ficha.create({
         data: {
-        nome: `ficha de ${nomeAtleta.pessoa.nome}`
+        nome: `ficha de ${atleta.pessoa.nome}`
         }
     })
 
@@ -25,7 +25,7 @@ export class FichaService {
 
     await this.prisma.ficha_atleta.create({
         data: {
-            id_atleta: nomeAtleta.id,
+            id_atleta: atleta.id,
             id_ficha: createFicha.id
         }
     })
@@ -42,6 +42,6 @@ export class FichaService {
         },
     })
 
-    return {createFicha, exercicios, intensidade};
+    return {nome: createFicha.nome, exercicios, intensidade};
   }
 }
