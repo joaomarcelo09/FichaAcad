@@ -16,6 +16,4 @@ export async function criarFicha(tipo: string, biotipo: string) {
         }
         return ficha
     }
-
-    else return ''
 }

@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { AtletaService } from './atleta.service';
 import { CreateAtletaDto } from './dto/create-atleta.dto';
@@ -31,10 +33,11 @@ export class AtletaController {
   async create(@Body() body: CreateAtletaDto) {
 
     const atleta = await this.atletaService.create(body)
+    if(!atleta) throw new HttpException('Algo deu errado no resgistro do atleta', HttpStatus.BAD_REQUEST)
 
     const tipo = await pegarTipo(atleta)
     const ficha = await criarFicha(tipo, atleta.biotipo)
-
+    
     const findAtleta = await this.atletaService.findOne(+atleta.id)
 
     const {nome, exercicios, intensidade} = await this.ficha.create(ficha, findAtleta)
