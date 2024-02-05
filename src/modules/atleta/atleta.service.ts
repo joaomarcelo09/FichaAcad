@@ -53,8 +53,17 @@ export class AtletaService {
     return `This action returns all atleta`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} atleta`;
+  async findOne(id: number) {
+
+    const atleta = await this.prisma.atleta.findFirst({
+      where: {
+        id: id
+      },
+      include: {
+        pessoa: true
+      }
+    })
+    return atleta;
   }
 
   update(id: number, updateAtletaDto: UpdateAtletaDto) {

@@ -13,6 +13,9 @@ import { UpdateAtletaDto } from './dto/update-atleta.dto';
 import { TelefoneService } from 'src/services/telefone/telefone.service';
 import { EmailService } from 'src/services/email/email.service';
 import { PessoaService } from 'src/services/pessoa/pessoa.service';
+import { pegarTipo } from 'src/helpers/atleta/pegarTipo';
+import { criarFicha } from 'src/helpers/atleta/criarFicha';
+import { FichaService } from 'src/services/ficha/ficha.service';
 
 @Controller('atleta')
 export class AtletaController {
@@ -21,16 +24,22 @@ export class AtletaController {
     private readonly telefone: TelefoneService,
     private readonly email: EmailService,
     private readonly pessoa: PessoaService,
+    private readonly ficha: FichaService,
   ) { }
 
   @Post()
   async create(@Body() body: CreateAtletaDto) {
 
-   
-
     const atleta = await this.atletaService.create(body)
 
-    return atleta;
+    const tipo = await pegarTipo(atleta)
+    const ficha = await criarFicha(tipo)
+
+    const findAtleta = await this.atletaService.findOne(+atleta.id)
+
+    const fichaCriada = await this.ficha.create(ficha, findAtleta)
+
+    return {atleta, ficha: {nome: fichaCriada.createFicha.nome, exercicios: fichaCriada.exercicios, intensidade: fichaCriada.intensidade}};
   }
 
   @Get()
