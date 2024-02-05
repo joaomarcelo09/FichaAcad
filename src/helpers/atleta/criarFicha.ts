@@ -1,4 +1,4 @@
-export async function criarFicha(tipo:any) {
+export async function criarFicha(tipo: string, biotipo: string) {
     
     if(tipo === 'A') {
 

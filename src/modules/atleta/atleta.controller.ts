@@ -33,7 +33,7 @@ export class AtletaController {
     const atleta = await this.atletaService.create(body)
 
     const tipo = await pegarTipo(atleta)
-    const ficha = await criarFicha(tipo)
+    const ficha = await criarFicha(tipo, atleta.biotipo)
 
     const findAtleta = await this.atletaService.findOne(+atleta.id)
 
