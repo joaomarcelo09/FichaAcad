@@ -5,6 +5,7 @@ import { EmailService } from 'src/services/email/email.service';
 import { PessoaService } from 'src/services/pessoa/pessoa.service';
 import { TelefoneService } from 'src/services/telefone/telefone.service';
 import { PrismaService } from 'src/database/prisma.service';
+import { findOneTypes } from 'src/types/findOne';
 
 @Injectable()
 export class AtletaService {
@@ -53,12 +54,10 @@ export class AtletaService {
     return `This action returns all atleta`;
   }
 
-  async findOne(id: number) {
+  async findOne({where}: findOneTypes) {
 
     const atleta = await this.prisma.atleta.findFirst({
-      where: {
-        id: id
-      },
+      where,
       include: {
         pessoa: true
       }

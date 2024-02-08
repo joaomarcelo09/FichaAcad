@@ -23,9 +23,6 @@ import { FichaService } from 'src/services/ficha/ficha.service';
 export class AtletaController {
   constructor(
     private readonly atletaService: AtletaService,
-    private readonly telefone: TelefoneService,
-    private readonly email: EmailService,
-    private readonly pessoa: PessoaService,
     private readonly ficha: FichaService,
   ) { }
 
@@ -51,8 +48,33 @@ export class AtletaController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.atletaService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+
+    const opt: any = {}
+
+    opt.where = {
+      id: +id,
+    }
+    
+    return this.atletaService.findOne(opt);
+  }
+
+  @Patch(':id')
+  async reavaliacao(@Param('id') id: string, @Body() updateAtletaDto: UpdateAtletaDto) {
+
+    const {peso, altura} = updateAtletaDto
+    const opt: any = {}
+
+    opt.where = {
+      id: +id
+    }
+    const atleta = await this.atletaService.findOne(opt)
+
+    if(atleta.peso !== +peso) {
+        
+    }
+
+    return this.atletaService.update(+id, updateAtletaDto);
   }
 
   @Patch(':id')

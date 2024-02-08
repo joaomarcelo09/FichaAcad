@@ -8,14 +8,19 @@ datasource db {
 }
 
 model atleta {
-  id           Int            @id @default(autoincrement())
-  id_pessoa    Int?
-  peso         Int
-  altura       Int
-  biotipo      String         @db.VarChar(50)
-  status       Boolean        @default(false)
-  pessoa       pessoa?        @relation(fields: [id_pessoa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_atleta_pessoa")
-  ficha_atleta ficha_atleta[]
+  id             Int            @id @default(autoincrement())
+  id_pessoa      Int?
+  peso           Int
+  altura         Int
+  biotipo        atleta_biotipo
+  reevaluated    Int            @default(0) @db.TinyInt
+  status         Boolean        @default(false)
+  created_at     DateTime       @default(dbgenerated("(now())")) @db.DateTime(0)
+  reevaluated_at DateTime?      @db.DateTime(0)
+  updated_at     DateTime?      @db.DateTime(0)
+  deleted_at     DateTime?      @db.DateTime(0)
+  pessoa         pessoa?        @relation(fields: [id_pessoa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_atleta_pessoa")
+  ficha_atleta   ficha_atleta[]
 
   @@index([id_pessoa], map: "FK_atleta_pessoa")
 }
@@ -94,4 +99,10 @@ model telefone {
   tipo   String   @db.VarChar(50)
   numero String   @db.VarChar(50)
   pessoa pessoa[]
+}
+
+enum atleta_biotipo {
+  endomorfo
+  mesomorfo
+  ectomorfo
 }
