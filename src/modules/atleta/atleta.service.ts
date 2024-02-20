@@ -54,22 +54,20 @@ export class AtletaService {
     return `This action returns all atleta`;
   }
 
-  async findOne({where}: findOneTypes) {
+  async findOne({where, include}: findOneTypes) {
 
     const atleta = await this.prisma.atleta.findFirst({
       where,
-      include: {
-        pessoa: true
-      }
+      include
     })
     return atleta;
   }
 
-  update(id: number, updateAtletaDto: UpdateAtletaDto) {
-    return `This action updates a #${id} atleta`;
+  remove(id: number) {
+    return `This action removes a #${id} atleta`;
   }
 
-  remove(id: number) {
+  update(id: number) {
     return `This action removes a #${id} atleta`;
   }
 }

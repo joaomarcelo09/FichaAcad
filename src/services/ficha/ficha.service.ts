@@ -44,4 +44,34 @@ export class FichaService {
 
     return {nome: createFicha.nome, exercicios, intensidade};
   }
+
+  async remove(id: number) {
+
+    const fichaDel = await this.prisma.ficha_atleta.findFirst({
+        where: {
+            id_ficha: id
+        }
+    })
+
+    await this.prisma.ficha_atleta.delete({
+        where: {
+            id: fichaDel.id
+        }
+    })
+
+    await this.prisma.ficha_exercicio.deleteMany({
+        where: {
+            id_ficha: id
+        }
+    })
+
+    await this.prisma.ficha.delete({
+        where: {
+            id: id
+        }
+    })
+
+    return 
+  }
+
 }
