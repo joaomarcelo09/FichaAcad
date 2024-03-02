@@ -43,7 +43,7 @@ model ficha {
   altura_maxima Int
   peso_minimo   Int
   peso_maximo   Int
-  biotipo       Int
+  biotipo       String @default("") @db.VarChar(50)
 }
 
 model ficha_atleta {
