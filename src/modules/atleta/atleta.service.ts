@@ -58,7 +58,7 @@ export class AtletaService {
 
     const atleta = await this.prisma.atleta.findFirst({
       where,
-      include
+      // include
     })
     return atleta;
   }

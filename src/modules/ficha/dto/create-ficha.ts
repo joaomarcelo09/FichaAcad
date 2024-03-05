@@ -1,4 +1,4 @@
-import { IsString, IsNumber } from "class-validator";
+import { IsString, IsNumber, IsArray } from "class-validator";
 
 export class CreateFichaDto {
 
@@ -15,8 +15,14 @@ export class CreateFichaDto {
   peso_minimo: number
 
   @IsNumber()
-  peso_maxima: number
+  peso_maximo: number
 
   @IsString()
   biotipo: string
+
+  @IsArray()
+  exercicios: {
+    id_exercicio: number
+    id_intensidade: number
+  }[]
 }
