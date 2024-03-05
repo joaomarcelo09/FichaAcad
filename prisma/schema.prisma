@@ -37,29 +37,33 @@ model exercicio {
 }
 
 model ficha {
-  id            Int    @id @default(autoincrement())
-  nome          String @db.VarChar(50)
-  altura_minima Int
-  altura_maxima Int
-  peso_minimo   Int
-  peso_maximo   Int
-  biotipo       String @default("") @db.VarChar(50)
+  id              Int               @id @default(autoincrement())
+  nome            String            @db.VarChar(50)
+  altura_minima   Int
+  altura_maxima   Int
+  peso_minimo     Int
+  peso_maximo     Int
+  biotipo         String            @default("") @db.VarChar(50)
+  ficha_atleta    ficha_atleta[]
+  ficha_exercicio ficha_exercicio[]
 }
 
 model ficha_atleta {
-  id        Int  @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   id_atleta Int?
   id_ficha  Int?
+  ficha     ficha? @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_id_ficha")
 
   @@index([id_atleta], map: "FK_ficha_atleta_atleta")
   @@index([id_ficha], map: "FK_ficha_atleta_ficha")
 }
 
 model ficha_exercicio {
-  id             Int  @id @default(autoincrement())
+  id             Int    @id @default(autoincrement())
   id_exercicio   Int?
   id_intensidade Int?
   id_ficha       Int?
+  ficha          ficha? @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK1_id_ficha")
 
   @@index([id_exercicio], map: "FK_ficha_exercicio_exercicio")
   @@index([id_intensidade], map: "FK_ficha_exercicio_intensidade")
