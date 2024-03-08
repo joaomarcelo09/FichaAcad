@@ -31,13 +31,19 @@ export class FichaService {
             biotipo: body.biotipo,
           },
         });
-        const fichaExercicios = await tx.ficha_exercicio.createMany({
+        await tx.ficha_exercicio.createMany({
           data: body.exercicios.map((exercicio) => ({
             id_exercicio: exercicio.id_exercicio,
             id_intensidade: exercicio.id_intensidade,
             id_ficha: ficha.id,
           })),
         });
+
+        const fichaExercicios = await tx.ficha_exercicio.findMany({
+          where: {
+            id_ficha: ficha.id
+          }
+        })
 
         return { ficha, fichaExercicios };
       },
