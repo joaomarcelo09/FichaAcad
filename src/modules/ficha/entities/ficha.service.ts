@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { IPagination } from 'src/types';
-import { formatOptFindAll } from 'src/helpers'
+import { formatOptFindAll } from 'src/helpers';
 
 @Injectable()
 export class FichaService {
@@ -48,14 +48,7 @@ export class FichaService {
     return { message: 'Ficha criada com sucesso!', ficha };
   }
 
-  async findAll(
-   {page,
-    limit,
-    where,
-    orderBy,
-    select,
-    include}:IPagination
-  ) {
+  async findAll({ page, limit, where, orderBy, select, include }: IPagination) {
     const options: any = formatOptFindAll({
       page,
       limit,
@@ -71,7 +64,11 @@ export class FichaService {
         where: options.where || {},
       }),
     ]);
-    return {message: 'Solicitação de listagem feita com sucesso!', rows: ficha, count };
+    return {
+      message: 'Solicitação de listagem feita com sucesso!',
+      rows: ficha,
+      count,
+    };
   }
 
   async findOne({ where, include }) {
@@ -84,26 +81,39 @@ export class FichaService {
   }
 
   async remove(id: number) {
+    let msg: string
+    
     await this.prisma.$transaction(async (tx) => {
-      await tx.ficha_atleta.deleteMany({
+      const ficha = await tx.ficha.findFirst({
         where: {
-          id_ficha: id,
-        },
-      });
+          id: id
+        }
+      })
 
-      await tx.ficha_exercicio.deleteMany({
-        where: {
-          id_ficha: id,
-        },
-      });
-
-      await tx.ficha.delete({
-        where: {
-          id: id,
-        },
-      });
+      if(ficha) {
+        await tx.ficha_atleta.deleteMany({
+          where: {
+            id_ficha: id,
+          },
+        });
+  
+        await tx.ficha_exercicio.deleteMany({
+          where: {
+            id_ficha: id,
+          },
+        });
+  
+        await tx.ficha.delete({
+          where: {
+            id: id,
+          },
+        });
+        msg = `Ficha de id ${id} excluída com sucesso, `
+        
+      }
+      msg = `Ficha de id ${id} não encontrada`
     });
-    return 'Ficha excluída com sucesso';
+    return {message: msg};
   }
 
   async update(
@@ -121,11 +131,58 @@ export class FichaService {
       }[];
     },
   ) {
-    const ficha = await this.prisma.$transaction(async (tx) => {
-      // const fichaUpdated = await this.prisma.ficha.update()
-      // return fichaUpdated;
+    const fichaUpdated = await this.prisma.$transaction(async (tx) => {
+      const fichasAtleta = await tx.ficha_atleta.findFirst({
+        where: {
+          id_ficha: id,
+        },
+      });
+      const exerciciosRelations = body.exercicios;
+      delete body.exercicios;
+
+      if (!fichasAtleta) {
+        // vai poder editar a própria ficha
+        await tx.ficha.update({
+          where: {
+            id: id,
+          },
+          data: body,
+        });
+      }
+      // vai poder editar apenas os exercicios e intensidade (relação)
+      const fichasExercicios = await tx.ficha_exercicio.findMany({
+        where: {
+          id_ficha: id,
+        },
+      });
+      if (fichasExercicios) {
+        await tx.ficha_exercicio.deleteMany({
+          where: {
+            id_ficha: id,
+          },
+        });
+      }
+      await tx.ficha_exercicio.createMany({
+        data: exerciciosRelations.map((exercicio) => ({
+          id_exercicio: exercicio.id_exercicio,
+          id_intensidade: exercicio.id_intensidade,
+          id_ficha: id,
+        })),
+      });
+
+      const fichaUpdated = await tx.ficha.findFirst({
+        where: {
+          id: id
+        },
+        include: {
+          ficha_exercicio: true,
+          ficha_atleta: true
+        }
+      })
+
+      return { fichaUpdated };
     });
 
-    return { message: 'Ficha atualizada com sucesso!', ficha };
+    return { message: 'Ficha atualizada com sucesso!', fichaUpdated };
   }
 }
