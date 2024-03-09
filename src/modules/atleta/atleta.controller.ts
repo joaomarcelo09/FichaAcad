@@ -27,7 +27,7 @@ export class AtletaController {
   async create(@Body() body: CreateAtletaDto) {
 
     const atleta = await this.atletaService.create(body)
-    if(!atleta) throw new HttpException('Algo deu errado no resgistro do atleta', HttpStatus.BAD_REQUEST)
+    if(!atleta) throw new HttpException('Algo deu errado no resgistro do atleta', HttpStatus.BAD_REQUEST) 
 
     const tipo = await pegarTipo(atleta)
     const ficha = await criarFicha(tipo, atleta.biotipo)
