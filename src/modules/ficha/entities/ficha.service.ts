@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { IPagination } from 'src/types';
 import { formatOptFindAll } from 'src/helpers';
+import { UpdateFichaDto } from '../dto/update-ficha';
 
 @Injectable()
 export class FichaService {
@@ -77,7 +78,7 @@ export class FichaService {
     };
   }
 
-  async findOne({ where, include }) {
+  async findOne({where, include}) {
     const ficha = await this.prisma.ficha.findFirst({
       where: where,
       include: include,
@@ -90,7 +91,7 @@ export class FichaService {
     let msg: string
     
     await this.prisma.$transaction(async (tx) => {
-      const ficha = await tx.ficha.findFirst({
+      const ficha = await this.prisma.ficha.findFirst({
         where: {
           id: id
         }
@@ -124,70 +125,62 @@ export class FichaService {
 
   async update(
     id: number,
-    body: {
-      nome: string;
-      altura_minima: number;
-      altura_maxima: number;
-      peso_minimo: number;
-      peso_maximo: number;
-      biotipo: string;
-      exercicios: {
-        id_exercicio: number;
-        id_intensidade: number;
-      }[];
+    fichaInfo: {
+      ficha_atleta: {}[],
+      ficha_exercicio: {}[]
     },
+    fichaUpdateBody: {
+      updateFichaDto: {
+        nome: string,
+        altura_minima: number,
+        altura_maxima: number,
+        peso_minimo: number,
+        peso_maximo: number,
+        biotipo: string
+      },
+      exerciciosToBeCreated: {
+        id_exercicio: number,
+        id_intensidade: number
+      }[]
+    }
   ) {
-    const fichaUpdated = await this.prisma.$transaction(async (tx) => {
-      const fichasAtleta = await tx.ficha_atleta.findFirst({
-        where: {
-          id_ficha: id,
-        },
-      });
-      const exerciciosRelations = body.exercicios;
-      delete body.exercicios;
-
-      if (!fichasAtleta) {
-        // vai poder editar a própria ficha
+      await this.prisma.$transaction(async (tx) => {
+      // can edit your own ficha
+      if (!fichaInfo.ficha_atleta) {
         await tx.ficha.update({
           where: {
-            id: id,
+            id: id, 
           },
-          data: body,
+          data: fichaUpdateBody.updateFichaDto,
         });
       }
-      // vai poder editar apenas os exercicios e intensidade (relação)
-      const fichasExercicios = await tx.ficha_exercicio.findMany({
-        where: {
-          id_ficha: id,
-        },
-      });
-      if (fichasExercicios) {
+      // can edit only the relations
+      if (fichaInfo.ficha_exercicio) {
         await tx.ficha_exercicio.deleteMany({
           where: {
             id_ficha: id,
           },
         });
       }
+
       await tx.ficha_exercicio.createMany({
-        data: exerciciosRelations.map((exercicio) => ({
+        data: fichaUpdateBody.exerciciosToBeCreated.map((exercicio) => ({
           id_exercicio: exercicio.id_exercicio,
           id_intensidade: exercicio.id_intensidade,
           id_ficha: id,
         })),
       });
-
-      const fichaUpdated = await tx.ficha.findFirst({
-        where: {
-          id: id
-        },
-        include: {
-          ficha_exercicio: true,
-          ficha_atleta: true
-        }
-      })
-
-      return { fichaUpdated };
     });
+
+    const fichaUpdated = await this.prisma.ficha.findFirst({
+      where: {
+        id: id
+      },
+      include: {
+        ficha_exercicio: true,
+        ficha_atleta: true
+      }
+    })
 
     return { message: 'Ficha atualizada com sucesso!', fichaUpdated };
   }

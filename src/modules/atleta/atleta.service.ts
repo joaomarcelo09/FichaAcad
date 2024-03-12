@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAtletaDto } from './dto/create-atleta.dto';
-import { UpdateAtletaDto } from './dto/update-atleta.dto';
 import { EmailService } from 'src/services/email/email.service';
 import { PessoaService } from 'src/services/pessoa/pessoa.service';
 import { TelefoneService } from 'src/services/telefone/telefone.service';
@@ -55,10 +53,9 @@ export class AtletaService {
   }
 
   async findOne({where, include}: findOneTypes) {
-
     const atleta = await this.prisma.atleta.findFirst({
       where,
-      // include
+      include
     })
     return atleta;
   }

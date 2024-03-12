@@ -9,8 +9,8 @@ export class FichaController {
   constructor(private readonly fichaService: FichaService) {}
 
   @Post()
-  create(@Body() createFichaDto: CreateFichaDto) {
-    return this.fichaService.create(createFichaDto);
+  async create(@Body() createFichaDto: CreateFichaDto) {
+    return await this.fichaService.create(createFichaDto);
   }
 
   @Get()
@@ -42,13 +42,35 @@ export class FichaController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFichaDto: UpdateFichaDto) {
-    return this.fichaService.update(+id, updateFichaDto);
+  async update(@Param('id') id: string, @Body() updateFichaDto: UpdateFichaDto) {
+    const opt: any = {}
+    opt.where = {
+      id: +id,
+    }
+    opt.include = {
+      ficha_exercicio: true,
+      ficha_atleta: true
+    }
+
+    const exerciciosToBeCreated = updateFichaDto.exercicios
+    delete updateFichaDto.exercicios;
+
+    const rows = await this.fichaService.findOne(opt)
+    const { ficha_atleta, ficha_exercicio } = rows
+    const fichaUpdate = {
+      updateFichaDto,
+      exerciciosToBeCreated
+    }
+    const fichaInfo = {
+      ficha_atleta,
+      ficha_exercicio,
+    }
+    return await this.fichaService.update(+id, fichaInfo, fichaUpdate);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.fichaService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.fichaService.remove(+id);
   }
 }
 

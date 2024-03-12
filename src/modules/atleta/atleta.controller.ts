@@ -12,8 +12,6 @@ import {
 import { AtletaService } from './atleta.service';
 import { CreateAtletaDto } from './dto/create-atleta.dto';
 import { UpdateAtletaDto } from './dto/update-atleta.dto';
-import { pegarTipo } from 'src/helpers/atleta/pegarTipo';
-import { criarFicha } from 'src/helpers/atleta/criarFicha';
 import { FichaServiceA as FichaService } from 'src/services/ficha/ficha.service';
 
 @Controller('atleta')
@@ -29,9 +27,6 @@ export class AtletaController {
     const atleta = await this.atletaService.create(body)
     if(!atleta) throw new HttpException('Algo deu errado no resgistro do atleta', HttpStatus.BAD_REQUEST)
 
-    const tipo = await pegarTipo(atleta)
-    // const ficha = await criarFicha(tipo, atleta.biotipo)
-
     const opt: any = {}
     opt.where = {
       id: +atleta.id
@@ -40,10 +35,6 @@ export class AtletaController {
     opt.include = {
       pessoa: true
     }
-    
-    const findAtleta = await this.atletaService.findOne(opt)
-
-    // const {nome, exercicios, intensidade} = await this.ficha.create(ficha, findAtleta)
 
     return {atleta};
   }
@@ -81,13 +72,7 @@ export class AtletaController {
     const atleta: any = await this.atletaService.findOne(opt)
 
     if(atleta.peso !== +peso) {
-        
-      const tipo = await pegarTipo(atleta)
-      const ficha = await criarFicha(tipo, atleta.biotipo)
-
       await this.ficha.remove(atleta.ficha_atleta[0].id_ficha)
-      // await this.ficha.create(ficha, atleta)
-
     }
 
     await this.atletaService.update(+id)
