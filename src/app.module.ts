@@ -6,7 +6,7 @@ import { PessoaService } from './services/pessoa/pessoa.service';
 import { TelefoneService } from './services/telefone/telefone.service';
 import { EmailService } from './services/email/email.service';
 import { PrismaModule } from './database/prisma.module';
-import { FichaModule } from './modules/ficha/entities/ficha.module';
+import { FichaModule } from './modules/ficha/ficha.module';
 
 @Module({
   imports: [PrismaModule, AtletaModule, ExercicioModule, IntensidadeModule, FichaModule],

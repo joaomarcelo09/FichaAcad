@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query} from '@nestjs/common';
 import { FichaService } from './ficha.service';
-import { CreateFichaDto } from '../dto/create-ficha';
-import { UpdateFichaDto } from '../dto/update-ficha';
+import { CreateFichaDto } from './dto/create-ficha';
+import { UpdateFichaDto } from './dto/update-ficha';
 import { formatFindAllQuery, paginationHelper } from 'src/helpers';
 
 @Controller('ficha')
