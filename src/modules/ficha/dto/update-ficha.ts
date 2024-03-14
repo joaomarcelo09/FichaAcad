@@ -17,7 +17,7 @@ export class UpdateFichaDto {
   peso_maximo: number
 
   @IsString()
-  biotipo: string
+  biotipo: 'endomorfo' | 'mesomorfo' | 'ectomorfo'
 
   @IsArray()
   exercicios: {
