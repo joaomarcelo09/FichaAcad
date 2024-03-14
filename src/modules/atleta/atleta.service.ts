@@ -23,7 +23,7 @@ export class AtletaService {
     altura: number
     biotipo: 'endomorfo' | 'mesomorfo' |'ectomorfo'
     status: boolean
-  }) {
+  }, fichaId: number) {
 
     const {atleta} = await this.prisma.$transaction(async (tx) => {
 
@@ -47,8 +47,15 @@ export class AtletaService {
         }
       })
 
-      // criar relacao
-      
+      if (fichaId) {
+        const fichaRel = await tx.ficha_atleta.create({
+          data: {
+            id_atleta: atleta.id,
+            id_ficha: fichaId
+          }
+        })
+        return {email, telefone, pessoa, atleta, fichaRel}
+      }
       return {email, telefone, pessoa, atleta}
     }, {
       timeout: 20000

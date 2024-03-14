@@ -11,7 +11,10 @@ export class CreateAtletaDto {
   email: string
 
   @IsObject()
-  telefone: object
+  telefone: {
+    tipo: 'TEL' | 'CEL',
+    numero: number
+  }
 
   @IsNumber()
   peso: number
