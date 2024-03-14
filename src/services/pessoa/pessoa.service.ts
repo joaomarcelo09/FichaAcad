@@ -5,13 +5,16 @@ import { PrismaService } from 'src/database/prisma.service';
 export class PessoaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data, tx: any, relation: any) {
+  async create(body_nome: string, tx: any, relation: {
+    id_email: number,
+    id_telefone: number
+  }) {
     const prisma = tx ?? this.prisma
     const email = await prisma.pessoa.create({
       data: {
         id_email: relation.id_email,
         id_telefone: relation.id_telefone,
-        nome: data.nome,
+        nome: body_nome,
       },
     });
 

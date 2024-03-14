@@ -3,7 +3,7 @@ import { EmailService } from 'src/services/email/email.service';
 import { PessoaService } from 'src/services/pessoa/pessoa.service';
 import { TelefoneService } from 'src/services/telefone/telefone.service';
 import { PrismaService } from 'src/database/prisma.service';
-import { findOneTypes } from 'src/types/findOne';
+import { findOneTypes } from 'src/types';
 
 @Injectable()
 export class AtletaService {
@@ -15,19 +15,27 @@ export class AtletaService {
     private readonly pessoa: PessoaService,
   ) { }
 
-  async create(body: any) {
+  async create(body: {
+    nome: string;
+    email: string;
+    telefone: object;
+    peso: number
+    altura: number
+    biotipo: 'endomorfo' | 'mesomorfo' |'ectomorfo'
+    status: boolean
+  }) {
 
     const {atleta} = await this.prisma.$transaction(async (tx) => {
 
       const email = await this.email.create(body.email, tx)
       const telefone = await this.telefone.create(body.telefone, tx)
 
-      const relationPeople: any = {
+      const relationPeople = {
         id_email: email.id,
         id_telefone: telefone.id
       }
 
-      const pessoa = await this.pessoa.create(body, tx, relationPeople)
+      const pessoa = await this.pessoa.create(body.nome, tx, relationPeople)
 
       const atleta = await tx.atleta.create({
         data: {
@@ -39,6 +47,7 @@ export class AtletaService {
         }
       })
 
+      // criar relacao
       
       return {email, telefone, pessoa, atleta}
     }, {
