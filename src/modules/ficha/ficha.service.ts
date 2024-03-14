@@ -14,7 +14,7 @@ export class FichaService {
     altura_maxima: number;
     peso_minimo: number;
     peso_maximo: number;
-    biotipo: string;
+    biotipo: 'endomorfo' | 'mesomorfo' | 'ectomorfo';
     exercicios: {
       id_exercicio: number;
       id_intensidade: number;
@@ -136,7 +136,7 @@ export class FichaService {
         altura_maxima: number,
         peso_minimo: number,
         peso_maximo: number,
-        biotipo: string
+        biotipo: 'endomorfo' | 'mesomorfo' | 'ectomorfo'
       },
       exerciciosToBeCreated: {
         id_exercicio: number,
