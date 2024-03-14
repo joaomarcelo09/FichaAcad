@@ -43,7 +43,7 @@ model ficha {
   altura_maxima   Int
   peso_minimo     Int
   peso_maximo     Int
-  biotipo         String            @default("") @db.VarChar(50)
+  biotipo         ficha_biotipo
   ficha_atleta    ficha_atleta[]
   ficha_exercicio ficha_exercicio[]
 }
@@ -89,12 +89,23 @@ model pessoa {
 }
 
 model telefone {
-  id     Int    @id @default(autoincrement())
-  tipo   String @db.VarChar(50)
-  numero String @db.VarChar(50)
+  id     Int           @id @default(autoincrement())
+  tipo   telefone_tipo
+  numero String        @db.VarChar(50)
 }
 
 enum atleta_biotipo {
+  endomorfo
+  mesomorfo
+  ectomorfo
+}
+
+enum telefone_tipo {
+  TEL
+  CEL
+}
+
+enum ficha_biotipo {
   endomorfo
   mesomorfo
   ectomorfo
