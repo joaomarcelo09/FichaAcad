@@ -8,16 +8,16 @@ import {
   Delete,
   HttpException,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { AtletaService } from './atleta.service';
 import { CreateAtletaDto } from './dto/create-atleta.dto';
 import { UpdateAtletaDto } from './dto/update-atleta.dto';
 import { FichaService } from 'src/modules/ficha/ficha.service';
 import { FichaType } from 'src/types';
-import { PessoaService } from 'src/services/pessoa/pessoa.service';
-import { TelefoneService } from 'src/services/telefone/telefone.service';
 import { PrismaService } from 'src/database/prisma.service';
-import { optFindFicha } from 'src/helpers';
+import { optFindFicha, formatFindAllQuery, paginationHelper } from 'src/helpers';
+
 
 @Controller('atleta')
 export class AtletaController {
@@ -48,14 +48,23 @@ export class AtletaController {
   }
 
   @Get()
-  findAll() {
-    return this.atletaService.findAll();
+  async findAll(
+    @Query() query,
+  ) {
+    const opt = formatFindAllQuery(query)
+    const data = await this.atletaService.findAll(opt);
+
+    if (opt.page && opt.limit) {
+      const pagination = await paginationHelper(query.page, query.limit, data.count);
+      return { data, pagination };
+    }
+
+    return data
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const opt: any = {};
-
     opt.where = {
       id: +id,
     };
