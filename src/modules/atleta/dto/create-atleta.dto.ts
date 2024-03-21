@@ -13,7 +13,7 @@ export class CreateAtletaDto {
   @IsObject()
   telefone: {
     tipo: 'TEL' | 'CEL',
-    numero: number
+    numero: string
   }
 
   @IsNumber()

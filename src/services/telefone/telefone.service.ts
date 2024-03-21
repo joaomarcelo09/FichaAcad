@@ -13,7 +13,26 @@ export class TelefoneService {
         tipo: data.tipo,
       },
     });
+    
 
     return telefone;
+  }
+  async update(data: {
+    tipo: string,
+    numero: string
+    id: number
+  }, tx: any) {
+    const prisma = tx ?? this.prisma
+    const telefone = await prisma.telefone.update({
+      where: {
+        id: data.id
+      },
+      data: {
+        tipo: data.tipo,
+        numero: data.numero
+      }
+    })
+
+    return telefone
   }
 }

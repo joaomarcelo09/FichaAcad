@@ -15,4 +15,20 @@ export class EmailService {
 
     return email;
   }
+  async update(data: {
+    email: string,
+    id: number
+  }, tx: any) {
+    const prisma = tx ?? this.prisma
+    const email = await prisma.email.update({
+      where: {
+        id: data.id
+      },
+      data: {
+        email: data.email
+      }
+    })
+
+    return email
+  }
 }
