@@ -1,25 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { IPagination } from 'src/types';
+import { IPagination, FichaType } from 'src/types';
 import { formatOptFindAll } from 'src/helpers';
 import { UpdateFichaDto } from './dto/update-ficha';
-
 @Injectable()
 export class FichaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(body: {
-    nome: string;
-    altura_minima: number;
-    altura_maxima: number;
-    peso_minimo: number;
-    peso_maximo: number;
-    biotipo: 'endomorfo' | 'mesomorfo' | 'ectomorfo';
-    exercicios: {
-      id_exercicio: number;
-      id_intensidade: number;
-    }[];
-  }) {
+  async create(body: FichaType) {
     const ficha = await this.prisma.$transaction(
       async (tx) => {
         const ficha = await tx.ficha.create({
@@ -78,7 +66,7 @@ export class FichaService {
     };
   }
 
-  async findOne({where, include}) {
+  async findOne({where, include}: any) {
     const ficha = await this.prisma.ficha.findFirst({
       where: where,
       include: include,

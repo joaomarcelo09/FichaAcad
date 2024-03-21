@@ -13,6 +13,7 @@ import { AtletaService } from './atleta.service';
 import { CreateAtletaDto } from './dto/create-atleta.dto';
 import { UpdateAtletaDto } from './dto/update-atleta.dto';
 import { FichaService } from 'src/modules/ficha/ficha.service';
+import { FichaType } from 'src/types';
 
 @Controller('atleta')
 export class AtletaController {
@@ -24,29 +25,32 @@ export class AtletaController {
   @Post()
   async create(@Body() body: CreateAtletaDto) {
     const opt = {
+      include: {},
       where: {
         altura_minima: {
-          gte: body.altura,
-        },
-        altura_maxima: {
           lte: body.altura,
         },
-        peso_minimo: {
-          gte: body.peso,
+        altura_maxima: {
+          gte: body.altura,
         },
-        peso_maximo: {
+        peso_minimo: {
           lte: body.peso,
         },
+        peso_maximo: {
+          gte: body.peso,
+        },
       },
-      include: {},
     };
-    const ficha = await this.fichaService.findOne(opt);
-    const atleta = await this.atletaService.create(body, ficha.id);
+
+    let ficha: null | FichaType = null;
+    ficha = await this.fichaService.findOne(opt);
+    const atleta = await this.atletaService.create(body, ficha);
     if (!atleta)
       throw new HttpException(
         'Algo deu errado no resgistro do atleta',
         HttpStatus.BAD_REQUEST,
-    );
+      );
+    return { atleta };
   }
 
   @Get()
@@ -65,37 +69,35 @@ export class AtletaController {
     return this.atletaService.findOne(opt);
   }
 
-  @Patch(':id')
+  @Patch('reavalicao/:id')
   async reavaliacao(
     @Param('id') id: string,
     @Body() updateAtletaDto: UpdateAtletaDto,
   ) {
-    const { peso } = updateAtletaDto;
-    const opt: any = {};
-
-    opt.where = {
-      id: +id,
-    };
-    opt.include = {
-      ficha_atleta: true,
-      pessoa: true,
-    };
-    const atleta: any = await this.atletaService.findOne(opt);
-
-    if (atleta.peso !== +peso) {
-      await this.ficha.remove(atleta.ficha_atleta[0].id_ficha);
-    }
-
-    await this.atletaService.update(+id);
-
-    const atletRel: any = await this.atletaService.findOne(opt);
-
-    return atletRel;
+    
+    return 'oi';
   }
+  @Patch('byId/:id')
+  async update(@Param('id') id: string, @Body() updateAtletaDto: UpdateAtletaDto) {
+    const idFicha = updateAtletaDto.id_ficha;
+    const pessoa = {
+      nome: updateAtletaDto.nome,
+      email: updateAtletaDto.email,
+      telefone: updateAtletaDto.telefone,
+    };
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAtletaDto: UpdateAtletaDto) {
-    return this.atletaService.update(+id);
+    delete updateAtletaDto.id_ficha;
+    delete updateAtletaDto.nome
+    delete updateAtletaDto.email
+    delete updateAtletaDto.telefone
+    delete updateAtletaDto.pessoa
+
+    const body = {
+      atleta: updateAtletaDto,
+      idFicha,
+      pessoa
+    };
+    return await this.atletaService.update(+id, body);
   }
 
   @Delete(':id')

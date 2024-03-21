@@ -3,8 +3,7 @@ import { EmailService } from 'src/services/email/email.service';
 import { PessoaService } from 'src/services/pessoa/pessoa.service';
 import { TelefoneService } from 'src/services/telefone/telefone.service';
 import { PrismaService } from 'src/database/prisma.service';
-import { findOneTypes } from 'src/types';
-
+import { findOneTypes, FichaType, AtletaType } from 'src/types';
 @Injectable()
 export class AtletaService {
   constructor(
@@ -15,17 +14,9 @@ export class AtletaService {
     private readonly pessoa: PessoaService,
   ) { }
 
-  async create(body: {
-    nome: string;
-    email: string;
-    telefone: object;
-    peso: number
-    altura: number
-    biotipo: 'endomorfo' | 'mesomorfo' |'ectomorfo'
-    status: boolean
-  }, fichaId: number) {
+  async create(body: AtletaType, ficha: FichaType) {
 
-    const {atleta} = await this.prisma.$transaction(async (tx) => {
+    const atleta = await this.prisma.$transaction(async (tx) => {
 
       const email = await this.email.create(body.email, tx)
       const telefone = await this.telefone.create(body.telefone, tx)
@@ -47,20 +38,19 @@ export class AtletaService {
         }
       })
 
-      if (fichaId) {
+      if (ficha) {
         const fichaRel = await tx.ficha_atleta.create({
           data: {
             id_atleta: atleta.id,
-            id_ficha: fichaId
+            id_ficha: ficha.id
           }
         })
-        return {email, telefone, pessoa, atleta, fichaRel}
+        return {email, telefone, pessoa, atleta, fichaRel, ficha}
       }
       return {email, telefone, pessoa, atleta}
     }, {
       timeout: 20000
     })
-
     return atleta;
   }
 
@@ -80,7 +70,25 @@ export class AtletaService {
     return `This action removes a #${id} atleta`;
   }
 
-  update(id: number) {
-    return `This action removes a #${id} atleta`;
+  async update(id: number, body: any) {
+    const atleta = await this.prisma.atleta.update({
+      where: {
+        id: id
+      },
+      data: {
+        ...body.atleta,
+        ficha_atleta: {
+          connect: { 
+            id_ficha: body.idFicha
+          }
+        },
+        // pessoa: {
+        //   connect: body.pessoa
+        // }
+      }
+      
+    })
+
+    return atleta
   }
 }
