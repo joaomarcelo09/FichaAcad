@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsEnum, IsObject, IsString } from "class-validator";
+import { IsBoolean, IsEmail, IsEnum, IsNumber, IsObject, IsString } from "class-validator";
 import { biotipoEnum } from "src/enums/biotipo/biotipo";
 
 export class CreateAtletaDto {
@@ -11,16 +11,19 @@ export class CreateAtletaDto {
   email: string
 
   @IsObject()
-  telefone: object
+  telefone: {
+    tipo: 'TEL' | 'CEL',
+    numero: string
+  }
 
-  @IsString()
-  peso: string
+  @IsNumber()
+  peso: number
 
-  @IsString()
-  altura: string
+  @IsNumber()
+  altura: number
 
   @IsEnum(biotipoEnum)
-  biotipo: string
+  biotipo: 'endomorfo' | 'mesomorfo' |'ectomorfo'
 
   @IsBoolean()
   status: boolean

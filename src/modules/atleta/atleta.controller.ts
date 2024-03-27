@@ -12,31 +12,38 @@ import {
 import { AtletaService } from './atleta.service';
 import { CreateAtletaDto } from './dto/create-atleta.dto';
 import { UpdateAtletaDto } from './dto/update-atleta.dto';
-import { FichaServiceA as FichaService } from 'src/services/ficha/ficha.service';
+import { FichaService } from 'src/modules/ficha/ficha.service';
+import { FichaType } from 'src/types';
+import { PessoaService } from 'src/services/pessoa/pessoa.service';
+import { TelefoneService } from 'src/services/telefone/telefone.service';
+import { PrismaService } from 'src/database/prisma.service';
+import { optFindFicha } from 'src/helpers';
 
 @Controller('atleta')
 export class AtletaController {
   constructor(
     private readonly atletaService: AtletaService,
-    private readonly ficha: FichaService,
-  ) { }
+    private readonly fichaService: FichaService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post()
   async create(@Body() body: CreateAtletaDto) {
 
-    const atleta = await this.atletaService.create(body)
-    if(!atleta) throw new HttpException('Algo deu errado no resgistro do atleta', HttpStatus.BAD_REQUEST)
+    const where = optFindFicha(body.altura, body.peso)
+    const opt = {
+      include: {},
+      where: where
+    };
 
-    const opt: any = {}
-    opt.where = {
-      id: +atleta.id
-    }
-
-    opt.include = {
-      pessoa: true
-    }
-
-    return {atleta};
+    const ficha = await this.fichaService.findOne(opt);
+    const atleta = await this.atletaService.create(body, ficha);
+    if (!atleta)
+      throw new HttpException(
+        'Algo deu errado no resgistro do atleta',
+        HttpStatus.BAD_REQUEST,
+      );
+    return { atleta };
   }
 
   @Get()
@@ -46,45 +53,98 @@ export class AtletaController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-
-    const opt: any = {}
+    const opt: any = {};
 
     opt.where = {
       id: +id,
-    }
-    
+    };
+
     return this.atletaService.findOne(opt);
   }
 
   @Patch(':id')
-  async reavaliacao(@Param('id') id: string, @Body() updateAtletaDto: UpdateAtletaDto) {
+  async update(@Param('id') id: string, @Body() updateAtletaDto: UpdateAtletaDto) {
 
-    const { peso } = updateAtletaDto
-    const opt: any = {}
+    const existingRelations: any= await this.atletaService.findOne({
+      where: {
+        id: +id
+      },
+      select: {
+        ficha_atleta: true,
+        pessoa: true
+      }
+    })
 
-    opt.where = {
-      id: +id
+    const updateEmail = {
+      email: updateAtletaDto.email,
+      id: existingRelations.pessoa.id_email
     }
-    opt.include = {
-      ficha_atleta: true,
-      pessoa: true
-    }
-    const atleta: any = await this.atletaService.findOne(opt)
-
-    if(atleta.peso !== +peso) {
-      await this.ficha.remove(atleta.ficha_atleta[0].id_ficha)
+    const updateTelefone = {
+      tipo: updateAtletaDto.telefone.tipo,
+      numero: updateAtletaDto.telefone.numero,
+      id: existingRelations.pessoa.id_telefone
     }
 
-    await this.atletaService.update(+id)
+    const { id: oldFichaAtletaId } = await this.prisma.ficha_atleta.findFirst({
+      where: {
+        id_atleta: +id
+      }
+    })
+    const body = {
+      pessoa: {
+        updateTelefone,
+        updateEmail,
+        data: {
+          nome: updateAtletaDto.nome,
+          id: existingRelations.pessoa.id
+        }
+      },
+      ficha: {
+        oldFichaAtletaId: oldFichaAtletaId,
+        newFichaAtletaId: updateAtletaDto.id_ficha
+      },
+      atleta: updateAtletaDto
+    }
 
-    const atletRel: any = await this.atletaService.findOne(opt)
+    delete updateAtletaDto.id_ficha
+    delete updateAtletaDto.nome
+    delete updateAtletaDto.email
+    delete updateAtletaDto.telefone
 
-    return atletRel;
+    return await this.atletaService.update(+id, body)
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAtletaDto: UpdateAtletaDto) {
-    return this.atletaService.update(+id);
+  @Patch('reavaliacao/:id')
+  async reavaliacao(
+    @Param('id') id: string,
+    @Body() updateAtletaDto: UpdateAtletaDto,
+  ) {
+    const where = optFindFicha(updateAtletaDto.altura, updateAtletaDto.peso)
+    const opt = {
+      include: {},
+      where: where
+    };
+
+    const atleta: any = await this.atletaService.findOne({
+      where: {
+        id: +id
+      },
+      select: {
+        ficha_atleta: true
+      }
+    })
+
+    const fichaAtletaId = atleta.ficha_atleta[0].id
+    const {id: newFichaId} = await this.fichaService.findOne(opt);
+
+    const newFichaUpdated =  await this.atletaService.reavaliacao(fichaAtletaId, newFichaId)
+  
+    return {
+      ficha_antiga: atleta.ficha_atleta[0].id_ficha,
+      nova_ficha: newFichaUpdated.id_ficha
+    }
+
+
   }
 
   @Delete(':id')
