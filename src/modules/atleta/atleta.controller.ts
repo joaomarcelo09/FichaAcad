@@ -36,8 +36,7 @@ export class AtletaController {
       where: where
     };
 
-    let ficha: null | FichaType = null;
-    ficha = await this.fichaService.findOne(opt);
+    const ficha = await this.fichaService.findOne(opt);
     const atleta = await this.atletaService.create(body, ficha);
     if (!atleta)
       throw new HttpException(
