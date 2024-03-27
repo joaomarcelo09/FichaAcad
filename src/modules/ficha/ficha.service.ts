@@ -1,13 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { IPagination, FichaType } from 'src/types';
+import { IPagination, FichaTyp, Exercicios } from 'src/types';
 import { formatOptFindAll } from 'src/helpers';
 import { UpdateFichaDto } from './dto/update-ficha';
 @Injectable()
 export class FichaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(body: FichaType) {
+  async create(body: {
+    nome: string;
+    altura_minima: number;
+    altura_maxima: number;
+    peso_minimo: number;
+    peso_maximo: number;
+    biotipo: 'endomorfo' | 'mesomorfo' | 'ectomorfo';
+    exercicios: Exercicios[];
+  }) {
+
     const ficha = await this.prisma.$transaction(
       async (tx) => {
         const ficha = await tx.ficha.create({
@@ -30,9 +39,9 @@ export class FichaService {
 
         const fichaExercicios = await tx.ficha_exercicio.findMany({
           where: {
-            id_ficha: ficha.id
-          }
-        })
+            id_ficha: ficha.id,
+          },
+        });
 
         return { ficha, fichaExercicios };
       },
@@ -66,7 +75,7 @@ export class FichaService {
     };
   }
 
-  async findOne({where, include}: any) {
+  async findOne({ where, include }) {
     const ficha = await this.prisma.ficha.findFirst({
       where: where,
       include: include,
@@ -76,99 +85,95 @@ export class FichaService {
   }
 
   async remove(id: number) {
-    let msg: string
-    
+    let msg: string;
+
     await this.prisma.$transaction(async (tx) => {
       const ficha = await this.prisma.ficha.findFirst({
         where: {
-          id: id
-        }
-      })
+          id: id,
+        },
+      });
 
-      if(ficha) {
+      if (ficha) {
         await tx.ficha_atleta.deleteMany({
           where: {
             id_ficha: id,
           },
         });
-  
+
         await tx.ficha_exercicio.deleteMany({
           where: {
             id_ficha: id,
           },
         });
-  
+
         await tx.ficha.delete({
           where: {
             id: id,
           },
         });
-        msg = `Ficha de id ${id} excluída com sucesso, `
-        
+        msg = `Ficha de id ${id} excluída com sucesso, `;
       }
-      msg = `Ficha de id ${id} não encontrada`
+      msg = `Ficha de id ${id} não encontrada`;
     });
-    return {message: msg};
+    return { message: msg };
   }
 
   async update(
     id: number,
-    fichaInfo: {
-      ficha_atleta: {}[],
-      ficha_exercicio: {}[]
-    },
+    ficha_atleta: {}[],
     fichaUpdateBody: {
-      updateFichaDto: {
-        nome: string,
-        altura_minima: number,
-        altura_maxima: number,
-        peso_minimo: number,
-        peso_maximo: number,
-        biotipo: 'endomorfo' | 'mesomorfo' | 'ectomorfo'
-      },
-      exerciciosToBeCreated: {
-        id_exercicio: number,
-        id_intensidade: number
-      }[]
-    }
+      nome: string;
+      altura_minima: number;
+      altura_maxima: number;
+      peso_minimo: number;
+      peso_maximo: number;
+      biotipo: 'endomorfo' | 'mesomorfo' | 'ectomorfo';
+    },
+    exercicios: {
+      exerciciosToAdd: Exercicios[],
+      idsToDelete: number[]
+    },
   ) {
-      await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       // can edit your own ficha
-      if (!fichaInfo.ficha_atleta) {
+      if (!ficha_atleta) {
         await tx.ficha.update({
           where: {
-            id: id, 
+            id: id,
           },
-          data: fichaUpdateBody.updateFichaDto,
-        });
-      }
-      // can edit only the relations
-      if (fichaInfo.ficha_exercicio) {
-        await tx.ficha_exercicio.deleteMany({
-          where: {
-            id_ficha: id,
-          },
+          data: fichaUpdateBody,
         });
       }
 
+      // can edit only the relations
+      await tx.ficha_exercicio.deleteMany({
+        where: {
+          id: {
+            in: exercicios.idsToDelete
+          }
+        }
+      })
+
       await tx.ficha_exercicio.createMany({
-        data: fichaUpdateBody.exerciciosToBeCreated.map((exercicio) => ({
+        data: exercicios.exerciciosToAdd.map((exercicio) => ({
           id_exercicio: exercicio.id_exercicio,
           id_intensidade: exercicio.id_intensidade,
           id_ficha: id,
         })),
-      });
+      })
+
     });
 
     const fichaUpdated = await this.prisma.ficha.findFirst({
       where: {
-        id: id
+        id: id,
       },
       include: {
         ficha_exercicio: true,
-        ficha_atleta: true
-      }
-    })
+        ficha_atleta: true,
+      },
+    });
 
     return { message: 'Ficha atualizada com sucesso!', fichaUpdated };
   }
