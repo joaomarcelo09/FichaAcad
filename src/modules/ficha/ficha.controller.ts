@@ -1,8 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query} from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { FichaService } from './ficha.service';
 import { CreateFichaDto } from './dto/create-ficha';
 import { UpdateFichaDto } from './dto/update-ficha';
 import { formatFindAllQuery, paginationHelper } from 'src/helpers';
+import { Exercicios } from 'src/types';
 
 @Controller('ficha')
 export class FichaController {
@@ -14,58 +24,86 @@ export class FichaController {
   }
 
   @Get()
-  async findAll(
-    @Query() query,
-  ) {
-    const opt = formatFindAllQuery(query)
+  async findAll(@Query() query) {
+    const opt = formatFindAllQuery(query);
     const data = await this.fichaService.findAll(opt);
     if (opt.page && opt.limit) {
-      const pagination = await paginationHelper(query.page, query.limit, data.count);
+      const pagination = await paginationHelper(
+        query.page,
+        query.limit,
+        data.count,
+      );
       return { data, pagination };
     }
-    return data
+    return data;
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const opt: any = {}
+    const opt: any = {};
 
     opt.where = {
       id: +id,
-    }
+    };
 
     opt.include = {
       ficha_exercicio: true,
-      ficha_atleta: true
-    }
+      ficha_atleta: true,
+    };
     return this.fichaService.findOne(opt);
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateFichaDto: UpdateFichaDto) {
-    const opt: any = {}
+  async update(
+    @Param('id') id: string,
+    @Body() updateFichaDto: UpdateFichaDto,
+  ) {
+    const opt: any = {};
     opt.where = {
       id: +id,
-    }
+    };
     opt.include = {
       ficha_exercicio: true,
-      ficha_atleta: true
-    }
+      ficha_atleta: true,
+    };
 
-    const exerciciosToBeCreated = updateFichaDto.exercicios
+    const exerciciosToBeCreated = updateFichaDto.exercicios;
     delete updateFichaDto.exercicios;
 
-    const rows = await this.fichaService.findOne(opt)
-    const { ficha_atleta, ficha_exercicio } = rows
-    const fichaUpdate = {
-      updateFichaDto,
-      exerciciosToBeCreated
-    }
-    const fichaInfo = {
+    const { ficha_atleta, ficha_exercicio }: any =
+      await this.fichaService.findOne(opt);
+
+    const exerciciosToAdd: Exercicios[] = exerciciosToBeCreated.filter(
+      (exercicio) =>
+        !ficha_exercicio.some(
+          (existingExercicio) =>
+            existingExercicio.id_exercicio === exercicio.id_exercicio &&
+            existingExercicio.id_intensidade === exercicio.id_intensidade,
+        ),
+    );
+
+    const exerciciosToDelete: Exercicios[] = ficha_exercicio.filter(
+      (existingExercicio) =>
+        !exerciciosToBeCreated.some(
+          (newExercicio) =>
+            newExercicio.id_exercicio === existingExercicio.id_exercicio &&
+            newExercicio.id_intensidade === existingExercicio.id_intensidade,
+        ),
+    );
+
+    const idsToDelete: number[] = exerciciosToDelete.map(
+      (exercicio) => exercicio.id,
+    );
+    const exercicios = {
+      exerciciosToAdd,
+      idsToDelete,
+    };
+    return await this.fichaService.update(
+      +id,
       ficha_atleta,
-      ficha_exercicio,
-    }
-    return await this.fichaService.update(+id, fichaInfo, fichaUpdate);
+      updateFichaDto,
+      exercicios,
+    );
   }
 
   @Delete(':id')
@@ -73,5 +111,3 @@ export class FichaController {
     return await this.fichaService.remove(+id);
   }
 }
-
-
