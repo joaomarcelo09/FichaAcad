@@ -15,7 +15,7 @@ model atleta {
   biotipo        atleta_biotipo
   reevaluated    Int            @default(0) @db.TinyInt
   status         Boolean        @default(false)
-  created_at     DateTime       @default(dbgenerated("(now())")) @db.DateTime(0)
+  created_at     DateTime?      @default(dbgenerated("(now())")) @db.DateTime(0)
   reevaluated_at DateTime?      @db.DateTime(0)
   updated_at     DateTime?      @db.DateTime(0)
   deleted_at     DateTime?      @db.DateTime(0)
@@ -32,17 +32,21 @@ model email {
 }
 
 model exercicio {
-  id              Int               @id @default(autoincrement())
-  titulo          String            @db.VarChar(50)
-  descricao       String            @db.VarChar(50)
-  status          Boolean           @default(false)
-  id_seeder       Int?              @unique(map: "id_seeder")
-  ficha_exercicio ficha_exercicio[]
+  id        Int     @id @default(autoincrement())
+  titulo    String  @db.VarChar(50)
+  descricao String  @db.VarChar(50)
+  status    Boolean @default(false)
+  id_seeder Int?    @unique(map: "id_seeder")
 }
 
 model ficha {
   id              Int               @id @default(autoincrement())
   nome            String            @db.VarChar(50)
+  altura_minima   Int
+  altura_maxima   Int
+  peso_minimo     Int
+  peso_maximo     Int
+  biotipo         ficha_biotipo
   ficha_atleta    ficha_atleta[]
   ficha_exercicio ficha_exercicio[]
 }
@@ -52,20 +56,18 @@ model ficha_atleta {
   id_atleta Int?
   id_ficha  Int?
   atleta    atleta? @relation(fields: [id_atleta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_atleta_atleta")
-  ficha     ficha?  @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_atleta_ficha")
+  ficha     ficha?  @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_id_ficha")
 
   @@index([id_atleta], map: "FK_ficha_atleta_atleta")
   @@index([id_ficha], map: "FK_ficha_atleta_ficha")
 }
 
 model ficha_exercicio {
-  id             Int          @id @default(autoincrement())
+  id             Int    @id @default(autoincrement())
   id_exercicio   Int?
   id_intensidade Int?
   id_ficha       Int?
-  exercicio      exercicio?   @relation(fields: [id_exercicio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_exercicio_exercicio")
-  ficha          ficha?       @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_exercicio_ficha")
-  intensidade    intensidade? @relation(fields: [id_intensidade], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_exercicio_intensidade")
+  ficha          ficha? @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK1_id_ficha")
 
   @@index([id_exercicio], map: "FK_ficha_exercicio_exercicio")
   @@index([id_intensidade], map: "FK_ficha_exercicio_intensidade")
@@ -73,12 +75,11 @@ model ficha_exercicio {
 }
 
 model intensidade {
-  id              Int               @id @default(autoincrement())
-  repeticao       Int
-  serie           Int
-  status          Boolean           @default(false)
-  id_seeder       Int?              @unique(map: "id_seeder")
-  ficha_exercicio ficha_exercicio[]
+  id        Int     @id @default(autoincrement())
+  repeticao Int
+  serie     Int
+  status    Boolean @default(false)
+  id_seeder Int?    @unique(map: "id_seeder")
 }
 
 model pessoa {
@@ -95,13 +96,24 @@ model pessoa {
 }
 
 model telefone {
-  id     Int      @id @default(autoincrement())
-  tipo   String   @db.VarChar(50)
-  numero String   @db.VarChar(50)
+  id     Int           @id @default(autoincrement())
+  tipo   telefone_tipo
+  numero String        @db.VarChar(50)
   pessoa pessoa[]
 }
 
 enum atleta_biotipo {
+  endomorfo
+  mesomorfo
+  ectomorfo
+}
+
+enum telefone_tipo {
+  TEL
+  CEL
+}
+
+enum ficha_biotipo {
   endomorfo
   mesomorfo
   ectomorfo
