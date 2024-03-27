@@ -67,37 +67,40 @@ export class FichaController {
       ficha_atleta: true,
     };
 
-    const exerciciosToBeCreated = updateFichaDto.exercicios;
-    delete updateFichaDto.exercicios;
-
     const { ficha_atleta, ficha_exercicio }: any =
       await this.fichaService.findOne(opt);
 
-    const exerciciosToAdd: Exercicios[] = exerciciosToBeCreated.filter(
-      (exercicio) =>
-        !ficha_exercicio.some(
-          (existingExercicio) =>
-            existingExercicio.id_exercicio === exercicio.id_exercicio &&
-            existingExercicio.id_intensidade === exercicio.id_intensidade,
-        ),
-    );
+    if (updateFichaDto.exercicios) {
+      const exerciciosToBeCreated = updateFichaDto.exercicios;
+      delete updateFichaDto.exercicios;
 
-    const exerciciosToDelete: Exercicios[] = ficha_exercicio.filter(
-      (existingExercicio) =>
-        !exerciciosToBeCreated.some(
-          (newExercicio) =>
-            newExercicio.id_exercicio === existingExercicio.id_exercicio &&
-            newExercicio.id_intensidade === existingExercicio.id_intensidade,
-        ),
-    );
+      const exerciciosToAdd: Exercicios[] = exerciciosToBeCreated.filter(
+        (exercicio) =>
+          !ficha_exercicio.some(
+            (existingExercicio) =>
+              existingExercicio.id_exercicio === exercicio.id_exercicio &&
+              existingExercicio.id_intensidade === exercicio.id_intensidade,
+          ),
+      );
 
-    const idsToDelete: number[] = exerciciosToDelete.map(
-      (exercicio) => exercicio.id,
-    );
-    const exercicios = {
-      exerciciosToAdd,
-      idsToDelete,
-    };
+      const exerciciosToDelete: Exercicios[] = ficha_exercicio.filter(
+        (existingExercicio) =>
+          !exerciciosToBeCreated.some(
+            (newExercicio) =>
+              newExercicio.id_exercicio === existingExercicio.id_exercicio &&
+              newExercicio.id_intensidade === existingExercicio.id_intensidade,
+          ),
+      );
+
+      const idsToDelete: number[] = exerciciosToDelete.map(
+        (exercicio) => exercicio.id,
+      );
+      var exercicios = {
+        exerciciosToAdd,
+        idsToDelete,
+      };
+    }
+
     return await this.fichaService.update(
       +id,
       ficha_atleta,

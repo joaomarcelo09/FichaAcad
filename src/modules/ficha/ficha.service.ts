@@ -144,6 +144,17 @@ export class FichaService {
           data: fichaUpdateBody,
         });
       }
+      else {
+        await tx.ficha.update({
+          where: {
+            id: id
+          },
+          data: {
+            nome: fichaUpdateBody.nome
+          }
+        })
+      }
+
 
       // can edit only the relations
       await tx.ficha_exercicio.deleteMany({
