@@ -15,17 +15,20 @@ model atleta {
   biotipo        atleta_biotipo
   reevaluated    Int            @default(0) @db.TinyInt
   status         Boolean        @default(false)
-  created_at     DateTime       @default(dbgenerated("(now())")) @db.DateTime(0)
+  created_at     DateTime?      @default(dbgenerated("(now())")) @db.DateTime(0)
   reevaluated_at DateTime?      @db.DateTime(0)
   updated_at     DateTime?      @db.DateTime(0)
   deleted_at     DateTime?      @db.DateTime(0)
+  pessoa         pessoa?        @relation(fields: [id_pessoa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_atleta_pessoa")
+  ficha_atleta   ficha_atleta[]
 
   @@index([id_pessoa], map: "FK_atleta_pessoa")
 }
 
 model email {
-  id    Int    @id @default(autoincrement())
-  email String @db.VarChar(50)
+  id     Int      @id @default(autoincrement())
+  email  String   @db.VarChar(50)
+  pessoa pessoa[]
 }
 
 model exercicio {
@@ -49,10 +52,11 @@ model ficha {
 }
 
 model ficha_atleta {
-  id        Int    @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   id_atleta Int?
   id_ficha  Int?
-  ficha     ficha? @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_id_ficha")
+  atleta    atleta? @relation(fields: [id_atleta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_atleta_atleta")
+  ficha     ficha?  @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_id_ficha")
 
   @@index([id_atleta], map: "FK_ficha_atleta_atleta")
   @@index([id_ficha], map: "FK_ficha_atleta_ficha")
@@ -79,10 +83,13 @@ model intensidade {
 }
 
 model pessoa {
-  id          Int    @id @default(autoincrement())
-  nome        String @db.VarChar(50)
+  id          Int       @id @default(autoincrement())
+  nome        String    @db.VarChar(50)
   id_telefone Int?
   id_email    Int?
+  atleta      atleta[]
+  email       email?    @relation(fields: [id_email], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_pessoa_email")
+  telefone    telefone? @relation(fields: [id_telefone], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_pessoa_telefone")
 
   @@index([id_email], map: "FK_pessoa_email")
   @@index([id_telefone], map: "FK_pessoa_telefone")
@@ -92,6 +99,7 @@ model telefone {
   id     Int           @id @default(autoincrement())
   tipo   telefone_tipo
   numero String        @db.VarChar(50)
+  pessoa pessoa[]
 }
 
 enum atleta_biotipo {
