@@ -3,9 +3,8 @@ import { EmailService } from 'src/services/email/email.service';
 import { PessoaService } from 'src/services/pessoa/pessoa.service';
 import { TelefoneService } from 'src/services/telefone/telefone.service';
 import { PrismaService } from 'src/database/prisma.service';
-import { findOneTypes, FichaType, AtletaType } from 'src/types';
-import { UpdateAtletaDto } from './dto/update-atleta.dto';
-import { PessoaDto } from 'src/services/pessoa/dto/pessoa-dto';
+import { findOneTypes, FichaType, AtletaType, IPagination } from 'src/types';
+import { formatOptFindAll } from 'src/helpers';
 
 @Injectable()
 export class AtletaService {
@@ -57,8 +56,27 @@ export class AtletaService {
     return atleta;
   }
 
-  findAll() {
-    return `This action returns all atleta`;
+  async findAll({ page, limit, where, orderBy, select, include }: IPagination) {
+    const options: any = formatOptFindAll({
+      page,
+      limit,
+      where,
+      orderBy,
+      select,
+      include,
+    });
+
+    const [atleta, count] = await Promise.all([
+      this.prisma.atleta.findMany(options),
+      this.prisma.atleta.count({
+        where: options.where || {},
+      }),
+    ]);
+    return {
+      message: 'Solicitação de listagem feita com sucesso!',
+      rows: atleta,
+      count,
+    };
   }
 
   async findOne(opt: findOneTypes) {
@@ -69,8 +87,24 @@ export class AtletaService {
     return atleta;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} atleta`;
+  async remove(id: number) {
+
+    await this.prisma.$transaction(async (tx) => {
+
+    await tx.ficha_atleta.deleteMany({
+      where: {
+        id_atleta: id
+      }
+    })
+
+    await tx.atleta.delete({
+      where: {
+        id: id
+      }
+    })
+
+  })
+    return `Atleta de id ${id} removido`;
   }
 
   async update(

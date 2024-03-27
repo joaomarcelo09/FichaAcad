@@ -8,16 +8,16 @@ import {
   Delete,
   HttpException,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { AtletaService } from './atleta.service';
 import { CreateAtletaDto } from './dto/create-atleta.dto';
 import { UpdateAtletaDto } from './dto/update-atleta.dto';
 import { FichaService } from 'src/modules/ficha/ficha.service';
 import { FichaType } from 'src/types';
-import { PessoaService } from 'src/services/pessoa/pessoa.service';
-import { TelefoneService } from 'src/services/telefone/telefone.service';
 import { PrismaService } from 'src/database/prisma.service';
-import { optFindFicha } from 'src/helpers';
+import { optFindFicha, formatFindAllQuery, paginationHelper } from 'src/helpers';
+
 
 @Controller('atleta')
 export class AtletaController {
@@ -47,14 +47,23 @@ export class AtletaController {
   }
 
   @Get()
-  findAll() {
-    return this.atletaService.findAll();
+  async findAll(
+    @Query() query,
+  ) {
+    const opt = formatFindAllQuery(query)
+    const data = await this.atletaService.findAll(opt);
+
+    if (opt.page && opt.limit) {
+      const pagination = await paginationHelper(query.page, query.limit, data.count);
+      return { data, pagination };
+    }
+
+    return data
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const opt: any = {};
-
     opt.where = {
       id: +id,
     };
@@ -134,14 +143,32 @@ export class AtletaController {
       }
     })
 
-    const fichaAtletaId = atleta.ficha_atleta[0].id
-    const {id: newFichaId} = await this.fichaService.findOne(opt);
+    if(!atleta) {
+      throw new HttpException(
+        'Não foi possível encontrar esse atleta',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-    const newFichaUpdated =  await this.atletaService.reavaliacao(fichaAtletaId, newFichaId)
-  
+    const fichaAtletaId = atleta.ficha_atleta[0].id
+    const oldFicha = atleta.ficha_atleta[0]
+    const newFicha = await this.fichaService.findOne(opt);
+
+    if(!newFicha.id) {
+      throw new HttpException(
+        'Não foi encontrada nenhuma ficha para esse caso',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    
+    if(newFicha.id !== oldFicha.id_ficha) {
+      var newFichaUpdated =  await this.atletaService.reavaliacao(fichaAtletaId, newFicha.id)
+    }
+
     return {
-      ficha_antiga: atleta.ficha_atleta[0].id_ficha,
-      nova_ficha: newFichaUpdated.id_ficha
+      msg: newFichaUpdated? 'Ficha atualizada com sucesso' : 'Mesma ficha encontrada',
+      ficha_antiga: atleta.ficha_atleta[0],
+      nova_ficha: newFichaUpdated ? newFichaUpdated : oldFicha
     }
 
 

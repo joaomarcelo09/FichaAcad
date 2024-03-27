@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { IPagination, Exercicios } from 'src/types';
 import { formatOptFindAll } from 'src/helpers';
-import { UpdateFichaDto } from './dto/update-ficha';
+
 @Injectable()
 export class FichaService {
   constructor(private readonly prisma: PrismaService) {}
