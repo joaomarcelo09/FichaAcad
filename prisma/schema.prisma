@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -13,35 +13,35 @@ model atleta {
   peso           Int
   altura         Int
   biotipo        atleta_biotipo
-  reevaluated    Int            @default(0) @db.TinyInt
+  reevaluated    Int            @default(0)
   status         Boolean        @default(false)
-  created_at     DateTime?      @default(dbgenerated("(now())")) @db.DateTime(0)
-  reevaluated_at DateTime?      @db.DateTime(0)
-  updated_at     DateTime?      @db.DateTime(0)
-  deleted_at     DateTime?      @db.DateTime(0)
-  pessoa         pessoa?        @relation(fields: [id_pessoa], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_atleta_pessoa")
+  created_at     DateTime?      @default(now())
+  reevaluated_at DateTime?
+  updated_at     DateTime?
+  deleted_at     DateTime?
+  pessoa         pessoa?        @relation(fields: [id_pessoa], references: [id])
   ficha_atleta   ficha_atleta[]
 
-  @@index([id_pessoa], map: "FK_atleta_pessoa")
+  @@index([id_pessoa])
 }
 
 model email {
   id     Int      @id @default(autoincrement())
-  email  String   @db.VarChar(50)
+  email  String   @unique
   pessoa pessoa[]
 }
 
 model exercicio {
   id        Int     @id @default(autoincrement())
-  titulo    String  @db.VarChar(50)
-  descricao String  @db.VarChar(50)
+  titulo    String
+  descricao String
   status    Boolean @default(false)
-  id_seeder Int?    @unique(map: "id_seeder")
+  id_seeder Int?    @unique
 }
 
 model ficha {
   id              Int               @id @default(autoincrement())
-  nome            String            @db.VarChar(50)
+  nome            String
   altura_minima   Int
   altura_maxima   Int
   peso_minimo     Int
@@ -55,11 +55,11 @@ model ficha_atleta {
   id        Int     @id @default(autoincrement())
   id_atleta Int?
   id_ficha  Int?
-  atleta    atleta? @relation(fields: [id_atleta], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_ficha_atleta_atleta")
-  ficha     ficha?  @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_id_ficha")
+  atleta    atleta? @relation(fields: [id_atleta], references: [id])
+  ficha     ficha?  @relation(fields: [id_ficha], references: [id])
 
-  @@index([id_atleta], map: "FK_ficha_atleta_atleta")
-  @@index([id_ficha], map: "FK_ficha_atleta_ficha")
+  @@index([id_atleta])
+  @@index([id_ficha])
 }
 
 model ficha_exercicio {
@@ -67,11 +67,11 @@ model ficha_exercicio {
   id_exercicio   Int?
   id_intensidade Int?
   id_ficha       Int?
-  ficha          ficha? @relation(fields: [id_ficha], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK1_id_ficha")
+  ficha          ficha? @relation(fields: [id_ficha], references: [id])
 
-  @@index([id_exercicio], map: "FK_ficha_exercicio_exercicio")
-  @@index([id_intensidade], map: "FK_ficha_exercicio_intensidade")
-  @@index([id_ficha], map: "id_ficha")
+  @@index([id_exercicio])
+  @@index([id_intensidade])
+  @@index([id_ficha])
 }
 
 model intensidade {
@@ -79,26 +79,26 @@ model intensidade {
   repeticao Int
   serie     Int
   status    Boolean @default(false)
-  id_seeder Int?    @unique(map: "id_seeder")
+  id_seeder Int?    @unique
 }
 
 model pessoa {
   id          Int       @id @default(autoincrement())
-  nome        String    @db.VarChar(50)
+  nome        String
   id_telefone Int?
   id_email    Int?
   atleta      atleta[]
-  email       email?    @relation(fields: [id_email], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_pessoa_email")
-  telefone    telefone? @relation(fields: [id_telefone], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_pessoa_telefone")
+  email       email?    @relation(fields: [id_email], references: [id])
+  telefone    telefone? @relation(fields: [id_telefone], references: [id])
 
-  @@index([id_email], map: "FK_pessoa_email")
-  @@index([id_telefone], map: "FK_pessoa_telefone")
+  @@index([id_email])
+  @@index([id_telefone])
 }
 
 model telefone {
   id     Int           @id @default(autoincrement())
   tipo   telefone_tipo
-  numero String        @db.VarChar(50)
+  numero String
   pessoa pessoa[]
 }
 
