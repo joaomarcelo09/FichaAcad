@@ -13,10 +13,16 @@ import { CreateFichaDto } from './dto/create-ficha';
 import { UpdateFichaDto } from './dto/update-ficha';
 import { formatFindAllQuery, paginationHelper } from 'src/helpers';
 import { Exercicios } from 'src/types';
+import { ExercicioService } from '../exercicio/exercicio.service';
+import { IntensidadeService } from '../intensidade/intensidade.service';
 
 @Controller('ficha')
 export class FichaController {
-  constructor(private readonly fichaService: FichaService) {}
+  constructor(private readonly fichaService: FichaService,
+    private readonly exerciseService: ExercicioService,
+    private readonly intensityService: IntensidadeService
+
+  ) { }
 
   @Post()
   async create(@Body() createFichaDto: CreateFichaDto) {
@@ -36,6 +42,17 @@ export class FichaController {
       return { data, pagination };
     }
     return data;
+  }
+
+  @Get('/exercises')
+  async findAllExercises() {
+
+    const opt = {};
+
+    const dataExer = await this.exerciseService.findAll(opt);
+    const dataInt = await this.intensityService.findAll(opt);
+
+    return { dataExer, dataInt };
   }
 
   @Get(':id')

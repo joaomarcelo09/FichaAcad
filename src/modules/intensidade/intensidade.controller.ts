@@ -5,17 +5,17 @@ import { UpdateIntensidadeDto } from './dto/update-intensidade.dto';
 
 @Controller('intensidade')
 export class IntensidadeController {
-  constructor(private readonly intensidadeService: IntensidadeService) {}
+  constructor(private readonly intensidadeService: IntensidadeService) { }
 
   @Post()
   create(@Body() createIntensidadeDto: CreateIntensidadeDto) {
     return this.intensidadeService.create(createIntensidadeDto);
   }
 
-  @Get()
-  findAll() {
-    return this.intensidadeService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.intensidadeService.findAll();
+  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
