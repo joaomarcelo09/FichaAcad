@@ -25,7 +25,7 @@ export class AtletaController {
     private readonly atletaService: AtletaService,
     private readonly fichaService: FichaService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   @Post()
   async create(@Body() body: CreateAtletaDto) {
@@ -68,17 +68,26 @@ export class AtletaController {
       id: +id,
     };
 
+    opt.include = {
+      pessoa: {
+        include: {
+          email: true,
+          telefone: true
+        }
+      }
+    }
+
     return this.atletaService.findOne(opt);
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateAtletaDto: UpdateAtletaDto) {
 
-    const existingRelations: any= await this.atletaService.findOne({
+    const existingRelations: any = await this.atletaService.findOne({
       where: {
         id: +id
       },
-      select: {
+      include: {
         ficha_atleta: true,
         pessoa: true
       }
@@ -143,7 +152,7 @@ export class AtletaController {
       }
     })
 
-    if(!atleta) {
+    if (!atleta) {
       throw new HttpException(
         'Não foi possível encontrar esse atleta',
         HttpStatus.BAD_REQUEST,
@@ -154,19 +163,19 @@ export class AtletaController {
     const oldFicha = atleta.ficha_atleta[0]
     const newFicha = await this.fichaService.findOne(opt);
 
-    if(!newFicha.id) {
+    if (!newFicha.id) {
       throw new HttpException(
         'Não foi encontrada nenhuma ficha para esse caso',
         HttpStatus.NOT_FOUND,
       );
     }
-    
-    if(newFicha.id !== oldFicha.id_ficha) {
-      var newFichaUpdated =  await this.atletaService.reavaliacao(fichaAtletaId, newFicha.id)
+
+    if (newFicha.id !== oldFicha.id_ficha) {
+      var newFichaUpdated = await this.atletaService.reavaliacao(fichaAtletaId, newFicha.id)
     }
 
     return {
-      msg: newFichaUpdated? 'Ficha atualizada com sucesso' : 'Mesma ficha encontrada',
+      msg: newFichaUpdated ? 'Ficha atualizada com sucesso' : 'Mesma ficha encontrada',
       ficha_antiga: atleta.ficha_atleta[0],
       nova_ficha: newFichaUpdated ? newFichaUpdated : oldFicha
     }

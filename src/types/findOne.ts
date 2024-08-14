@@ -1,5 +1,5 @@
 export interface findOneTypes {
     where?: any
-    include?: never
+    include?: any
     select?: any
 }

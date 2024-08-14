@@ -13,7 +13,7 @@ export class AtletaService {
     private readonly telefone: TelefoneService,
     private readonly email: EmailService,
     private readonly pessoa: PessoaService,
-  ) {}
+  ) { }
 
   async create(body: AtletaType, ficha: FichaType) {
     const atleta = await this.prisma.$transaction(
@@ -82,7 +82,7 @@ export class AtletaService {
   async findOne(opt: findOneTypes) {
     const atleta = await this.prisma.atleta.findFirst({
       where: opt.where,
-      select: opt.select,
+      include: opt.include
     });
     return atleta;
   }
@@ -91,19 +91,19 @@ export class AtletaService {
 
     await this.prisma.$transaction(async (tx) => {
 
-    await tx.ficha_atleta.deleteMany({
-      where: {
-        id_atleta: id
-      }
-    })
+      await tx.ficha_atleta.deleteMany({
+        where: {
+          id_atleta: id
+        }
+      })
 
-    await tx.atleta.delete({
-      where: {
-        id: id
-      }
-    })
+      await tx.atleta.delete({
+        where: {
+          id: id
+        }
+      })
 
-  })
+    })
     return `Atleta de id ${id} removido`;
   }
 
@@ -160,7 +160,7 @@ export class AtletaService {
         data: body.atleta
       })
 
-      return {atleta, newFichaAtleta, pessoa}
+      return { atleta, newFichaAtleta, pessoa }
     });
 
     return atletaUpdated;
